@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,6 +22,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
 using SharedLibrary.Configuration;
 
 namespace AuthServer.API
@@ -40,17 +41,17 @@ namespace AuthServer.API
         {
             //  Scoped
 
-            //  Tek bir istekte bir tane nesne örneði oluþacak ayný istekte birden fazla interface ile karþýlaþýrsa consturctor'da yine ayný nesne örneðini kullanýcak 
+            //  Tek bir istekte bir tane nesne Ã¶rneÄŸi oluÅŸacak aynÄ± istekte birden fazla interface ile karÅŸÄ±laÅŸÄ±rsa consturctor'da yine aynÄ± nesne Ã¶rneÄŸini kullanÄ±cak 
 
 
 
             //  Transient
 
-            //  Her interface ile karþýlaþtýðýnda yeni bir nesne örneði
+            //  Her interface ile karÅŸÄ±laÅŸtÄ±ÄŸÄ±nda yeni bir nesne Ã¶rneÄŸi
 
             //  Singleton 
 
-            //  Uygulama boyunca tek bir nesne örneði üzerinden çalýþýr.
+            //  Uygulama boyunca tek bir nesne Ã¶rneÄŸi Ã¼zerinden Ã§alÄ±ÅŸÄ±r.
 
 
 
@@ -68,7 +69,7 @@ namespace AuthServer.API
                 options.UseSqlServer(Configuration.GetConnectionString("SqlServer"),opt=>
                 {
                   
-                    // migration iþlemleri nerde gerçekleþicek ise o konumu belirtiyoruz.
+                    // migration iÅŸlemleri nerde gerÃ§ekleÅŸicek ise o konumu belirtiyoruz.
                     opt.MigrationsAssembly("AuthServer.Data");
                 });
             });
@@ -76,7 +77,7 @@ namespace AuthServer.API
             services.AddIdentity<UserApp, IdentityRole>(opt=> {
                 opt.User.RequireUniqueEmail = true;
                 opt.Password.RequireNonAlphanumeric = false;
-            }).AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders(); // Þifre sýfýrlamada default bir token oluþturmak için AddDefaultTokenProviders
+            }).AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders(); // Åžifre sÄ±fÄ±rlamada default bir token oluÅŸturmak iÃ§in AddDefaultTokenProviders
 
 
             services.Configure<CustomTokenOption>(Configuration.GetSection("TokenOption"));
@@ -86,7 +87,7 @@ namespace AuthServer.API
             var tokenOptions = Configuration.GetSection("TokenOption").Get<CustomTokenOption>();
 
 
-            // 2 ayrý üyelik sistemi olabilir -> bayiler için ayrý bir üyelik normal kullanýcýlar için farklý login ekranlarý
+            // 2 ayrÄ± Ã¼yelik sistemi olabilir -> bayiler iÃ§in ayrÄ± bir Ã¼yelik normal kullanÄ±cÄ±lar iÃ§in farklÄ± login ekranlarÄ±
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -110,6 +111,29 @@ namespace AuthServer.API
 
                 };
             });
+
+            services.AddSwaggerGen(opt =>
+            {
+                opt.SwaggerDoc("doc", new Microsoft.OpenApi.Models.OpenApiInfo
+                {
+                    Title = "AuthServer API",
+                    Description = "AuthServer API Document",
+                    Contact = new Microsoft.OpenApi.Models.OpenApiContact
+                    {
+                        Email = "sametirkoren@gmail.com",
+                        Name = "Samet IrkÃ¶ren",
+                        Url = new Uri("https://sametirkoren.com.tr")
+                    }
+                });
+                opt.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                {
+                    In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                    Name = "Authentication",
+                    Type = SecuritySchemeType.ApiKey,
+                    Description = "Bearer {token}"
+                });
+            });
+
             services.AddControllers();
         }
 
@@ -120,13 +144,21 @@ namespace AuthServer.API
             {
                 app.UseDeveloperExceptionPage();
             }
+           
 
             app.UseHttpsRedirection();
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
+
+            app.UseSwagger();
+            app.UseSwaggerUI(opt =>
+            {
+                opt.SwaggerEndpoint("/swagger/doc/swagger.json", "AuthServer API");
+            });
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
