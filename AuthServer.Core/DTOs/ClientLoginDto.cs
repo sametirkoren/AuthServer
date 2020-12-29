@@ -8,6 +8,6 @@ namespace AuthServer.Core.DTOs
     {
         public string ClientId { get; set; }
 
-        public string ClientPassword { get; set; }
+        public string ClientSecret { get; set; }
     }
 }
