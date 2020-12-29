@@ -10,6 +10,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SharedLibrary.Configuration;
+using SharedLibrary.Extensions;
 
 namespace ExampleApp1.API
 {
@@ -25,6 +27,10 @@ namespace ExampleApp1.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<CustomTokenOption>(Configuration.GetSection("TokenOption"));
+            var tokenOptions = Configuration.GetSection("TokenOption").Get<CustomTokenOption>();
+
+            services.AddCustomTokenAuth(tokenOptions);
             services.AddControllers();
         }
 
@@ -40,6 +46,7 @@ namespace ExampleApp1.API
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

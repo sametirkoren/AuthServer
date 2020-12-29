@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AuthServer.Service.Services
+namespace SharedLibrary.Services
 {
     public static class SignService
     {

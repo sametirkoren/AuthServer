@@ -24,6 +24,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using SharedLibrary.Configuration;
+using SharedLibrary.Services;
 
 namespace AuthServer.API
 {
@@ -84,7 +85,7 @@ namespace AuthServer.API
             services.Configure<List<Client>>(Configuration.GetSection("Clients"));
 
 
-            var tokenOptions = Configuration.GetSection("TokenOption").Get<CustomTokenOption>();
+           
 
 
             // 2 ayrı üyelik sistemi olabilir -> bayiler için ayrı bir üyelik normal kullanıcılar için farklı login ekranları
@@ -93,6 +94,7 @@ namespace AuthServer.API
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme,opts=> {
+                var tokenOptions = Configuration.GetSection("TokenOption").Get<CustomTokenOption>();
                 opts.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
                 {
                     ValidIssuer = tokenOptions.Issuer,
