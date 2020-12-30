@@ -8,6 +8,8 @@ using Microsoft.Extensions.Hosting;
 using SharedLibrary.Configuration;
 using SharedLibrary.Extensions;
 using Microsoft.EntityFrameworkCore;
+using System;
+using Microsoft.OpenApi.Models;
 
 namespace ExampleApp1.API
 {
@@ -39,6 +41,28 @@ namespace ExampleApp1.API
             var tokenOptions = Configuration.GetSection("TokenOption").Get<CustomTokenOption>();
 
             services.AddCustomTokenAuth(tokenOptions);
+
+            services.AddSwaggerGen(opt =>
+            {
+                opt.SwaggerDoc("doc", new Microsoft.OpenApi.Models.OpenApiInfo
+                {
+                    Title = "Exampleapp1 API",
+                    Description = "Exampleapp1 API Document",
+                    Contact = new Microsoft.OpenApi.Models.OpenApiContact
+                    {
+                        Email = "sametirkoren@gmail.com",
+                        Name = "Samet Irkören",
+                        Url = new Uri("https://sametirkoren.com.tr")
+                    }
+                });
+                opt.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                {
+                    In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                    Name = "Authentication",
+                    Type = SecuritySchemeType.ApiKey,
+                    Description = "Bearer {token}"
+                });
+            });
             services.AddControllers();
         }
 
@@ -57,6 +81,11 @@ namespace ExampleApp1.API
             app.UseAuthentication();
             app.UseAuthorization();
 
+            app.UseSwagger();
+            app.UseSwaggerUI(opt =>
+            {
+                opt.SwaggerEndpoint("/swagger/doc/swagger.json", "AuthServer API");
+            });
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

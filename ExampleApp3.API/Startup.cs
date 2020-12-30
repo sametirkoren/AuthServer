@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
 using SharedLibrary.Configuration;
 using SharedLibrary.Extensions;
 
@@ -29,7 +30,27 @@ namespace ExampleApp3.API
         {
             services.Configure<CustomTokenOption>(Configuration.GetSection("TokenOption"));
             var tokenOptions = Configuration.GetSection("TokenOption").Get<CustomTokenOption>();
-
+            services.AddSwaggerGen(opt =>
+            {
+                opt.SwaggerDoc("doc", new Microsoft.OpenApi.Models.OpenApiInfo
+                {
+                    Title = "Exampleapp2 API",
+                    Description = "Exampleapp2 API Document",
+                    Contact = new Microsoft.OpenApi.Models.OpenApiContact
+                    {
+                        Email = "sametirkoren@gmail.com",
+                        Name = "Samet Irkören",
+                        Url = new Uri("https://sametirkoren.com.tr")
+                    }
+                });
+                opt.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                {
+                    In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                    Name = "Authentication",
+                    Type = SecuritySchemeType.ApiKey,
+                    Description = "Bearer {token}"
+                });
+            });
             services.AddCustomTokenAuth(tokenOptions);
             services.AddControllers();
         }
@@ -48,7 +69,11 @@ namespace ExampleApp3.API
 
             app.UseAuthentication();
             app.UseAuthorization();
-
+            app.UseSwagger();
+            app.UseSwaggerUI(opt =>
+            {
+                opt.SwaggerEndpoint("/swagger/doc/swagger.json", "AuthServer API");
+            });
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
